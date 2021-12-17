@@ -1,0 +1,192 @@
+<html>
+  <head>
+    <title>Three.js tutorial</title>
+  </head>
+  <body style="margin: 0; padding: 0;">
+    <script type="module">
+      import * as THREE from "./js/three.module.js";
+      import {VRButton} from "./js/VRButton.js" ;
+      import {XRHandModelFactory} from "./js/XRHandModelFactory.js";
+      import {XRControllerModelFactory} from "./js/XRControllerModelFactory.js";
+            
+      let scene = new THREE.Scene();
+      
+      let camera = new THREE.PerspectiveCamera(
+        75, window.innerWidth/window.innerHeight, 0.1, 1000
+      );
+      let renderer = new THREE.WebGLRenderer({alpha : true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
+      document.body.appendChild(VRButton.createButton(renderer));
+      // light source definition
+      let light = new THREE.PointLight();
+        renderer.setPixelRatio(window.devicePixelRatio) ;
+        renderer.setSize(window.innerWidth, window.innerHeight) ;
+       renderer.xr.enabled=true;
+       renderer.outputEncoding = THREE.sRGBEncoding;
+      renderer.shadowMap.enabled = true;
+        //renderer.xr.setSession(xrSession) ;
+            let hand1;
+			let hand2;
+
+			
+              const controllerModelFactory = new XRControllerModelFactory();
+				const handModelFactory = new XRHandModelFactory();
+      
+      // Hand 1
+				let controllerGrip1 = renderer.xr.getControllerGrip( 0 );
+				controllerGrip1.add( controllerModelFactory.createControllerModel( controllerGrip1 ) );
+				scene.add( controllerGrip1 );
+
+				hand1 = renderer.xr.getHand( 0 );
+				hand1.add( handModelFactory.createHandModel( hand1 ) );
+
+				scene.add( hand1 );
+             
+     // hand 2
+    let  controllerGrip2 = renderer.xr.getControllerGrip( 1 );
+				controllerGrip2.add( controllerModelFactory.createControllerModel( controllerGrip2 ) );
+				scene.add( controllerGrip2 );
+
+				hand2 = renderer.xr.getHand( 1 );
+				hand2.add( handModelFactory.createHandModel( hand2 ) );
+				scene.add( hand2 );
+
+      
+      
+				
+				
+      
+      // let's add a skybox
+      let skyboxGeometry = new THREE.BoxBufferGeometry(500,500,500);
+      
+      let skyboxMaterial = [
+        new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load("textures/space_ft.png"), side: THREE.BackSide}), 
+        new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load("textures/space_bk.png"), side: THREE.BackSide}), 
+        new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load("textures/space_up.png"), side: THREE.BackSide}), 
+        new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load("textures/space_dn.png"), side: THREE.BackSide}), 
+        new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load("textures/space_rt.png"), side: THREE.BackSide}), 
+        new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load("textures/space_lf.png"), side: THREE.BackSide}), 
+      ];
+	  let skybox = new THREE.Mesh(skyboxGeometry, skyboxMaterial);
+      
+      //sun definition 
+      let sunTexture = new THREE.TextureLoader().load("textures/sunmap.jpg");
+      sunTexture.wrapS = THREE.RepeatWrapping;
+      sunTexture.wrapT = THREE.RepeatWrapping;
+      let sunGeometry = new THREE.SphereBufferGeometry(60,32,32);
+      let sunMaterial = new THREE.MeshBasicMaterial({ map: sunTexture });
+      let sun = new THREE.Mesh(sunGeometry, sunMaterial);
+      
+     let sphereGeometry = new THREE.SphereBufferGeometry(10,32,32);
+      let sphereMaterial = new THREE.MeshBasicMaterial({color: 0x2233FF, emissive: 0x112244});
+      let sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+      
+      
+      // earth definition
+      let earthTexture = new THREE.TextureLoader().load("textures/EarthMap_2500x1250.jpg");
+      let cloudTexture = new THREE.TextureLoader().load("textures/earthcloudmap.jpg");
+      let cloudAlphaTexture = new THREE.TextureLoader().load("textures/earthcloudmap_bw.jpg");
+      
+      earthTexture.wrapS = THREE.RepeatWrapping;
+      earthTexture.wrapT = THREE.RepeatWrapping;
+      let cloudGeometry = new THREE.SphereBufferGeometry(6.6,32,32);
+      let earthGeometry = new THREE.SphereBufferGeometry(6.5,32,32);
+      let cloudMaterial = new THREE.MeshLambertMaterial({ 
+        	map: cloudTexture, alphaMap: cloudAlphaTexture, transparent: true
+      });
+      let earthMaterial = new THREE.MeshLambertMaterial({ map: earthTexture});
+      let earth = new THREE.Mesh(earthGeometry, earthMaterial);
+      let cloud = new THREE.Mesh(cloudGeometry, cloudMaterial);
+      
+      //earth tunrning point
+      let earthTurningPoint = new THREE.Object3D();
+      
+      // moon definition
+      let moonTexture = new THREE.TextureLoader().load("textures/moonmap1k.jpg");
+      moonTexture.wrapS = THREE.RepeatWrapping;
+      moonTexture.wrapT = THREE.RepeatWrapping;
+      let moonGeometry = new THREE.SphereBufferGeometry(1.7, 16, 16);
+      let moonMaterial = new THREE.MeshLambertMaterial({color: 0xffffff, map: moonTexture});
+      let moon = new THREE.Mesh(moonGeometry, moonMaterial);
+      
+      // moon turning point
+      let moonTurningPoint = new THREE.Object3D();
+      
+      //camera turning point
+      let cameraTurningPoint = new THREE.Object3D();
+      // container 
+      let container = new THREE.Object3D();
+     
+      // scene graph construction 
+      scene.add(container);
+      container.position.set(0,1,-1.5);
+      container.scale.set(0.006,0.006,0.006)
+      container.add(light);
+      container.add(sun);
+      container.add(earthTurningPoint);
+      scene.add(skybox);
+      scene.add(sphere);
+      sphere.position.set(11,0,0);
+      
+      scene.add(cameraTurningPoint);
+      cameraTurningPoint.add(camera);
+      scene.add(light);
+      //scene.add(sun);
+      scene.add(earthTurningPoint);
+      earthTurningPoint.add(earth);
+      earthTurningPoint.add(cloud);
+      earthTurningPoint.add(moonTurningPoint);
+      moonTurningPoint.add(moon);
+      
+      
+      earth.position.x = 150;
+      earth.rotation.x = 23 * Math.PI/ 180;
+      cloud.position.x = 150;
+      moonTurningPoint.position.x = 150;
+      moon.position.x = 19;
+            
+      camera.position.z = 250;  
+      let interMaterial=new THREE.MeshBasicMaterial({color: 0x2233FF, emissive: 0x112244});
+      let interMaterial1=new THREE.MeshLambertMaterial({color: 0xFF0000});
+      let interMaterial2=new THREE.MeshLambertMaterial({color: 0xFFFF00});
+      
+      function render(time) {
+        earthTurningPoint.rotation.y = Math.PI / 30 * time / 1000;
+        earth.rotation.y = Math.PI / 15 * time / 1000 - Math.PI / 30 * time / 1000;
+        cloud.rotation.y = Math.PI / 7.5 * time / 1000;
+        moonTurningPoint.rotation.y = Math.PI / 30 * time / 200 - Math.PI / 30 * time / 1000 
+        renderer.render(scene, camera);
+        if(hand1.joints.hasOwnProperty('index-finger-tip'))
+        {
+        let index1 = hand1.joints['index-finger-tip'].position;
+       		 if(index1.distanceTo(sphere.position)<10)
+       		 {
+        		sphereMaterial=interMaterial2;
+                XRSession.end()
+       		 }
+      		  else
+        	{
+       			 sphereMaterial=interMaterial;
+        	}
+        }
+         if(hand2.joints.hasOwnProperty('index-finger-tip'))
+        {
+        let index2 = hand2.joints['index-finger-tip'].position;
+       		 if(index2.distanceTo(sphere.position)<10)
+       		 {
+        		sphereMaterial=interMaterial1;
+       		 }
+      		  else
+        	{
+       			 sphereMaterial=interMaterial;
+        	}
+        }
+      }
+      renderer.setAnimationLoop(render);  
+      
+
+      
+    </script>
+  </body>
+</html>
